@@ -21,10 +21,10 @@ const int averageItemLingthBytes= 200;
 const int maxPackegeSizeBytes = 1000000000;// 1Gb aprox we can use for sorting on single machine
 int maxPackageSize =  (int)Math.Ceiling((decimal)maxPackegeSizeBytes / averageItemLingthBytes);
 
-var sorter = new ExtendedSorter(logger);
+var sorter = new ExtendedSorterOnFileSystem(logger);
 
 // to make resilience logic  retry this part after IO fail
-sorter.SortWithFileSystem<TestLineItem>(inputFileName, folder, "output.txt", new ByNameAndNumberComparer(), maxPackageSize, cts.Token);
+sorter.Sort<TestLineItem>(inputFileName, folder, "output.txt", new ByNameAndNumberComparer(), maxPackageSize, cts.Token);
 
 
 

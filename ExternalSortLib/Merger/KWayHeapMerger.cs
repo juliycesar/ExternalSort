@@ -7,13 +7,13 @@ namespace ExternalSortLib.Merger
 	/// Kway merge algoritm for merging presorted arrays into single sorted array
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class KWayExtendedHeapMerger<T> where T : ITextSerializable, new()
+	public class KWayHeapMerger<T> where T : ITextSerializable, new()
 	{
 		protected readonly IList<ISequenceReader<T>> _inputSequences;
 		protected readonly ISequenceWriter<T> _writer;
 		protected readonly ILogger _logger;
 
-		public KWayExtendedHeapMerger(IList<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, ILogger logger)
+		public KWayHeapMerger(IList<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, ILogger logger)
 		{
 			_inputSequences = inputSequences;
 			_writer = writer;

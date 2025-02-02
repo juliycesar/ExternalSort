@@ -8,12 +8,12 @@ namespace ExternalSortLib.Merger
 	/// A able to restore merging after failures, need restart it from client
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class KWayExtendedHeapMergerRecoverable<T> : KWayExtendedHeapMerger<T> where T : ITextSerializable, new()
+	public class KWayHeapMergerRecoverable<T> : KWayHeapMerger<T> where T : ITextSerializable, new()
 	{
-		readonly IStatusRepository<KWayExtendedMergerJobStatus> _statusRepository;
+		readonly IStatusRepository<KWayMergerJobStatus> _statusRepository;
 		List<int> _batchStatuses;
 
-		public KWayExtendedHeapMergerRecoverable(IList<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, IStatusRepository<KWayExtendedMergerJobStatus> statusRepository, ILogger logger)
+		public KWayHeapMergerRecoverable(IList<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, IStatusRepository<KWayMergerJobStatus> statusRepository, ILogger logger)
 			: base(inputSequences, writer, logger)
 		{
 			_statusRepository = statusRepository;
@@ -39,12 +39,12 @@ namespace ExternalSortLib.Merger
 			}
 			catch (Exception ex)
 			{
-				_statusRepository.SetStatus(new KWayExtendedMergerJobStatus { AllCompleted = false, MergeCounts = _batchStatuses });
+				_statusRepository.SetStatus(new KWayMergerJobStatus { AllCompleted = false, MergeCounts = _batchStatuses });
 				_logger.LogError("Exception happened during merging. Operation stopped, status saved");
 				throw;
 			}
 
-			_statusRepository.SetStatus(new KWayExtendedMergerJobStatus { AllCompleted = true, MergeCounts = _batchStatuses });
+			_statusRepository.SetStatus(new KWayMergerJobStatus { AllCompleted = true, MergeCounts = _batchStatuses });
 		}
 
 		private PriorityQueue<(T, ISequenceReader<T>, int), T>? InitializeSortHeap(IComparer<T> comparer ,CancellationToken ct)
