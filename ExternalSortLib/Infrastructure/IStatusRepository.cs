@@ -5,5 +5,4 @@
 		void SetStatus(T status);
 		T GetStatus();
 	}
-
 }

@@ -2,7 +2,7 @@
 {
 	public class FileSequenceReader<T> : ISequenceReader<T> where T : ITextSerializable, new()
 	{
-		private StreamReader _reader;
+		private readonly StreamReader _reader;
 
 		public FileSequenceReader(string filePath)
 		{
@@ -22,10 +22,7 @@
 		public void Skip(int itemsCount)
 		{
 			for (int i = 0; i < itemsCount; i++)
-			{
-				if (_reader.ReadLine() == null)
-					throw new InvalidOperationException("Reached end of file while skipping.");
-			}
+				_reader.ReadLine();
 		}
 
 		public void Dispose()

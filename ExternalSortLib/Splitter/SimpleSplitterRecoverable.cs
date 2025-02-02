@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace ExternalSortLib.Splitter
 {
-
 	public class SimpleSplitterRecoverable<T> : SimpleSplitter<T> where T : ITextSerializable, new()
 	{
 		readonly IStatusRepository<SplitterJobStatus> _statusRepository;

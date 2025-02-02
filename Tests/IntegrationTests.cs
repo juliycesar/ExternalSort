@@ -7,8 +7,18 @@ namespace Tests
 {
 	public class IntegrationTests
 	{
+		readonly ILogger logger;
+
+		public IntegrationTests()
+		{
+			var mock = new Mock<ILogger>();
+			logger = mock.Object;
+		}
+
+
+
 		[Fact]
-		public void Restorable_File()
+		public void Restorable_File_Check()
 		{
 			var lines = new List<string>
 			{
@@ -29,8 +39,6 @@ namespace Tests
 				"32. Cherry is the best",
 				"30432. Something something something"
 			};
-			var mock = new Mock<ILogger>();
-			ILogger logger = mock.Object;
 
 			var folder = Directory.GetCurrentDirectory();
 			folder = Path.Combine(folder, "temp_test");
@@ -42,7 +50,7 @@ namespace Tests
 
 			var inputFileName = Path.Combine(folder, "input.txt");
 			using (var f = new StreamWriter(inputFileName))
-				foreach (var line in lines) f.WriteLine(line);
+				 lines.ForEach(line=> f.WriteLine(line));
 
 			// Action
 			var sorter = new ExtendedSorter(logger);
@@ -52,10 +60,7 @@ namespace Tests
 			// clear files
 			Directory.Delete(folder, true);
 
-
-
 			Assert.Equal(string.Join("\n", expectedLines), string.Join("\n", result));
-			
 		}
 	}
 }

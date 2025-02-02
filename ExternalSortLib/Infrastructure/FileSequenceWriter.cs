@@ -2,7 +2,7 @@
 {
 	public class FileSequenceWriter<T> : ISequenceWriter<T> where T : ITextSerializable, new()
 	{
-		private StreamWriter _writer;
+		private readonly  StreamWriter _writer;
 
 		public FileSequenceWriter(string filePath, bool appendIfExists)
 		{
