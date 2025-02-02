@@ -27,12 +27,14 @@ namespace ExternalSortLib.Splitter
 
 		protected ICollection<string> SplitFileToSortedBatches(ICollection<string> batchIds, int batchSize, IComparer<T> comparer, CancellationToken ct = default)
 		{
+			var items = new List<T>(batchSize); // reserve potentially huge amount of memory
+
 			for (int currentBatchNumber = batchIds.Count(); !_inputFile.EndOfSequence; currentBatchNumber++)
 			{
 				ct.ThrowIfCancellationRequested();
 				_logger.LogInformation($"Batch {currentBatchNumber} started");
 				
-				var items = ReadItems(batchSize);
+				ReadItems(batchSize, items);
 
 				items.Sort(comparer); // sort in memory CPU intensive operation
 
@@ -48,13 +50,11 @@ namespace ExternalSortLib.Splitter
 			return batchIds;
 		}
 
-		private List<T> ReadItems(int batchSize)
+		private void ReadItems(int batchSize, List<T> items)
 		{
-			var items = new List<T>(batchSize); // reserve potentially huge amount of memory
+			items.Clear();
 			for (int i = 0; i < batchSize && !_inputFile.EndOfSequence; i++)
 				items.Add(_inputFile.Read());
-
-			return items;
 		}
 
 		private string WriteItems(int batchNumber, List<T> items)
