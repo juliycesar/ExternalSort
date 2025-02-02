@@ -22,12 +22,12 @@ namespace ExternalSortLib
 			_logger.LogInformation($"Start Splitting file {inputFileName}");
 
 			IEnumerable<string> batchIds;
-			var repositoryFabric = new FileSequenceRepositoryFabric<T>(folder);
-			using (var reader = repositoryFabric.GetReader(inputFileName))
+			var repositoryFactory = new FileSequenceRepositoryFactory<T>(folder);
+			using (var reader = repositoryFactory.GetReader(inputFileName))
 			{
 				IStatusRepository<SplitterJobStatus> statusRepository = 
 					new JsonFileStatusRepository<SplitterJobStatus>(Path.Combine(folder, SplitterStatusFileName));
-				var splitter = new SimpleSplitterRecoverable<T>(repositoryFabric, reader, statusRepository, _logger);
+				var splitter = new SimpleSplitterRecoverable<T>(repositoryFactory, reader, statusRepository, _logger);
 				batchIds = splitter.SplitFileToSortedBatches(packageSize, comparer, ct);
 			}
 			_logger.LogInformation($"File splited into {batchIds.Count()} batches package size {packageSize} items");
@@ -36,9 +36,9 @@ namespace ExternalSortLib
 			_logger.LogInformation($"Start merging into {outputFileName}");
 			IStatusRepository<KWayExtendedMergerJobStatus> mergeStatusRepository = 
 				new JsonFileStatusRepository<KWayExtendedMergerJobStatus>(Path.Combine(folder, MergerStatusFileName));
-			using (var writer = repositoryFabric.GetWriter(Path.Combine(folder, outputFileName), appendIfExists: true))
+			using (var writer = repositoryFactory.GetWriter(Path.Combine(folder, outputFileName), appendIfExists: true))
 			{
-				var batchReaders = batchIds.Select(x => repositoryFabric.GetReader(x)).ToList();
+				var batchReaders = batchIds.Select(x => repositoryFactory.GetReader(x)).ToList();
 
 				var merger = new KWayExtendedHeapMergerRecoverable<T>(batchReaders, writer, mergeStatusRepository, _logger);
 				merger.Merge(comparer, ct);

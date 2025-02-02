@@ -1,9 +1,9 @@
 ﻿namespace ExternalSortLib.Infrastructure
 {
-	public class FileSequenceRepositoryFabric<T> : ISequenceRepositoryFabric<T> where T : ITextSerializable, new()
+	public class FileSequenceRepositoryFactory<T> : ISequenceRepositoryFactory<T> where T : ITextSerializable, new()
 	{
 		string _folder;
-		public FileSequenceRepositoryFabric(string folder)
+		public FileSequenceRepositoryFactory(string folder)
 		{
 			_folder = folder;
 			Directory.CreateDirectory(_folder);

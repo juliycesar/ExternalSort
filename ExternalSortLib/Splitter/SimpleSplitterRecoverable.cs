@@ -6,8 +6,8 @@ namespace ExternalSortLib.Splitter
 	public class SimpleSplitterRecoverable<T> : SimpleSplitter<T> where T : ITextSerializable, new()
 	{
 		readonly IStatusRepository<SplitterJobStatus> _statusRepository;
-		public SimpleSplitterRecoverable(ISequenceRepositoryFabric<T> repositoryFabric, ISequenceReader<T> inputFile, IStatusRepository<SplitterJobStatus> statusRepository, ILogger logger)
-				: base(repositoryFabric, inputFile, logger)
+		public SimpleSplitterRecoverable(ISequenceRepositoryFactory<T> repositoryFactory, ISequenceReader<T> inputFile, IStatusRepository<SplitterJobStatus> statusRepository, ILogger logger)
+				: base(repositoryFactory, inputFile, logger)
 		{
 			_statusRepository = statusRepository;
 		}

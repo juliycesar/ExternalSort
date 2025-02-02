@@ -5,13 +5,13 @@ namespace ExternalSortLib.Splitter
 {
 	public class SimpleSplitter<T> where T : ITextSerializable, new()
 	{
-		protected readonly ISequenceRepositoryFabric<T> _repositoryFabric;
+		protected readonly ISequenceRepositoryFactory<T> _repositoryFactory;
 		protected readonly ISequenceReader<T> _inputFile;
 		protected readonly ILogger _logger;
 
-		public SimpleSplitter(ISequenceRepositoryFabric<T> repositoryFabric, ISequenceReader<T> inputFile, ILogger logger)
+		public SimpleSplitter(ISequenceRepositoryFactory<T> repositoryFactory, ISequenceReader<T> inputFile, ILogger logger)
 		{
-			_repositoryFabric = repositoryFabric;
+			_repositoryFactory = repositoryFactory;
 			_inputFile = inputFile;
 			_logger = logger;
 		}
@@ -56,7 +56,7 @@ namespace ExternalSortLib.Splitter
 		private string WriteItems(int batchNumber, List<T> items)
 		{
 			var batchId = batchNumber.ToString();
-			using (var writer = _repositoryFabric.GetWriter(batchId, false))
+			using (var writer = _repositoryFactory.GetWriter(batchId, false))
 				items.ForEach(item => writer.Write(item));
 
 			return batchId;
