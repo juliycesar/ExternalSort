@@ -5,37 +5,45 @@ namespace ExternalSortLib.Merger
 {
 	public class KWayExtendedHeapMerger<T> where T : ITextSerializable, new()
 	{
-		protected readonly IEnumerable<ISequenceReader<T>> _inputSequences;
+		protected readonly IList<ISequenceReader<T>> _inputSequences;
 		protected readonly ISequenceWriter<T> _writer;
 		protected readonly ILogger _logger;
 
-		public KWayExtendedHeapMerger(IEnumerable<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, ILogger logger)
+		public KWayExtendedHeapMerger(IList<ISequenceReader<T>> inputSequences, ISequenceWriter<T> writer, ILogger logger)
 		{
 			_inputSequences = inputSequences;
 			_writer = writer;
 			_logger = logger;
 		}
 
-		public virtual void Merge(IComparer<T> comparer, CancellationToken ct = default)
+		private PriorityQueue<(T, ISequenceReader<T>, int), T>? 
+																InitializeSortHeap(IComparer<T> comparer, CancellationToken ct)
 		{
 			// initialize heap with top elements
 			var queue = new PriorityQueue<(T, ISequenceReader<T>, int), T>(_inputSequences.Count(), comparer);
-			int readerNumber = 0;
-			foreach (var sequenceReader in _inputSequences)
+			//int readerNumber = 0;
+			for (int readerNumber = 0; readerNumber < _inputSequences.Count(); readerNumber++)
 			{
 				ct.ThrowIfCancellationRequested();
-				if (!sequenceReader.EndOfSequence)
-				{
-					var item1 = sequenceReader.Read();
-					queue.Enqueue((item1, sequenceReader, readerNumber), item1);
-				} // else we skip this reader
-				readerNumber++;
+
+				var sequenceReader = _inputSequences[readerNumber];
+				if (sequenceReader.EndOfSequence)
+					continue;
+
+				var topItem = sequenceReader.Read();
+				queue.Enqueue((topItem, sequenceReader, readerNumber), topItem);
 			}
+			return queue;
+		}
+
+		public virtual void Merge(IComparer<T> comparer, CancellationToken ct = default)
+		{
+			var queue = InitializeSortHeap(comparer, ct);
 
 			Merge(queue, comparer, ct);
 		}
 
-		protected virtual void UpdateStatus(int readerNumber) { }
+		protected virtual void UpdateStatus(int readerNumber) {/*Do nothing here*/}
 
 		protected virtual void Merge(PriorityQueue<(T, ISequenceReader<T>, int), T> queue, IComparer<T> comparer, CancellationToken ct = default)
 		{
@@ -43,6 +51,7 @@ namespace ExternalSortLib.Merger
 			while (queue.Count > 0)
 			{
 				ct.ThrowIfCancellationRequested();
+
 				var (item, reader, readerNumber) = queue.Dequeue();
 				_writer.Write(item);
 

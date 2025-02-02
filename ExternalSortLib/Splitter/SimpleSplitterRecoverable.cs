@@ -20,24 +20,23 @@ namespace ExternalSortLib.Splitter
 
 		public override IEnumerable<string> SplitFileToSortedBatches(int batchSize, IComparer<T> comparer, CancellationToken ct = default)
 		{
-			ICollection<string> batchIds = new List<string>();
-
 			var status = _statusRepository.GetStatus();
-			for (int i = 0; i < status.BatchCompleted; i++)
-				batchIds.Add(i.ToString());
+
+			ICollection<string> batchIds = status.BatchCompleted>0?
+											 Enumerable.Range(0, status.BatchCompleted-1).Select(x => x.ToString()).ToList()
+											:new List<string>();
+
 			if (status.AllCompleted)
 			{
 				_logger.LogInformation("Split is completed according to status");
 				return batchIds;
 			}
 
-
 			if (batchIds.Any())
 			{
 				_logger.LogInformation($"Skipping {batchIds.Count()} completed batches");
 				_inputFile.Skip(batchIds.Count() * batchSize); // restore from fail point and skip batches which already done
 			}
-
 
 			batchIds = SplitFileToSortedBatches(batchIds, batchSize, comparer, ct);
 

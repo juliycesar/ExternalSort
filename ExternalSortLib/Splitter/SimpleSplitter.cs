@@ -23,40 +23,18 @@ namespace ExternalSortLib.Splitter
 
 		protected ICollection<string> SplitFileToSortedBatches(ICollection<string> batchIds, int batchSize, IComparer<T> comparer, CancellationToken ct = default)
 		{
-			int currentBatchNumber = batchIds.Count();
-			bool lastBatch = false;
-
-			while (!lastBatch && !_inputFile.EndOfSequence)
+			for (int currentBatchNumber = batchIds.Count(); !_inputFile.EndOfSequence; currentBatchNumber++)
 			{
-				_logger.LogInformation($"Batch {currentBatchNumber} started");
 				ct.ThrowIfCancellationRequested();
-				var items = new List<T>(batchSize);
-				for (int i = 0; i < batchSize; i++)
-				{
-					if (!_inputFile.EndOfSequence)
-					{
-						T item = _inputFile.Read();
-						items.Add(item);
-					}
-					else
-					{
-						items.TrimExcess();
-						lastBatch = true;
-						break;
-					}
-				}
+				_logger.LogInformation($"Batch {currentBatchNumber} started");
+				
+				var items = ReadItems(batchSize);
 
-				items.Sort(comparer); // sort in memory
+				items.Sort(comparer); // sort in memory CPU intensive operation
 
-				var batchId = currentBatchNumber.ToString();
-				using (var writer = _repositoryFabric.GetWriter(batchId, false))
-				{
-					foreach (T item in items)
-						writer.Write(item);
-				}
+				var batchId = WriteItems(currentBatchNumber, items);
 
 				batchIds.Add(batchId);
-				currentBatchNumber++;
 
 				UpdateBatchCompletedStatus(currentBatchNumber);
 
@@ -66,9 +44,27 @@ namespace ExternalSortLib.Splitter
 			return batchIds;
 		}
 
+		private List<T> ReadItems(int batchSize)
+		{
+			var items = new List<T>(batchSize); // reserve potentially huge amount of memory
+			for (int i = 0; i < batchSize && !_inputFile.EndOfSequence; i++)
+				items.Add(_inputFile.Read());
+
+			return items;
+		}
+
+		private string WriteItems(int batchNumber, List<T> items)
+		{
+			var batchId = batchNumber.ToString();
+			using (var writer = _repositoryFabric.GetWriter(batchId, false))
+				items.ForEach(item => writer.Write(item));
+
+			return batchId;
+		}
+
 		protected virtual void UpdateBatchCompletedStatus(int batchCompleted)
 		{
-
+			// do nothing , reserved for derived classes
 		}
 	}
 
