@@ -1,6 +1,7 @@
 using ExternalSortLib;
 using ExternalSortLib.Entity;
-using ExternalSortLib.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Tests
 {
@@ -28,8 +29,9 @@ namespace Tests
 				"32. Cherry is the best",
 				"30432. Something something something"
 			};
+			var mock = new Mock<ILogger>();
+			ILogger logger = mock.Object;
 
-			
 			var folder = Directory.GetCurrentDirectory();
 			folder = Path.Combine(folder, "temp_test");
 			
@@ -42,28 +44,9 @@ namespace Tests
 			using (var f = new StreamWriter(inputFileName))
 				foreach (var line in lines) f.WriteLine(line);
 
-			IEnumerable<string> batchIds;
-			// split into sorted files
-			var repositoryFabric = new FileSequenceRepositoryFabric<TestLineItem>(folder);
-			using (var reader = repositoryFabric.GetReader(inputFileName))
-			{
-				IStatusRepository<SplitterJobStatus> statusRepository = new JsonFileStatusRepository<SplitterJobStatus>(Path.Combine(folder, "splitter_status.json"));
-				var splitter = new SimpleSplitterRecoverable<TestLineItem>(repositoryFabric, reader, statusRepository);
-				batchIds = splitter.SplitFileToSortedBatches(3, new ByNameAndNumberComparer());
-			}
-				
-			
-			// merge into final file
-			IStatusRepository<KWayExtendedMergerJobStatus> mergeStatusRepository = new JsonFileStatusRepository<KWayExtendedMergerJobStatus>(Path.Combine(folder, "merge_status.json"));
-			using (var writer = repositoryFabric.GetWriter(Path.Combine(folder, "output.txt"), appendIfExists: true))
-			{
-				var batchReaders = batchIds.Select(x => repositoryFabric.GetReader(x)).ToList();
-
-				var merger = new KWayExtendedHeapMergerRecoverable<TestLineItem>(batchReaders, writer, mergeStatusRepository);
-				merger.Merge(new ByNameAndNumberComparer());
-				foreach(var batchReader in batchReaders)
-					batchReader.Dispose();
-			}
+			// Action
+			var sorter = new ExtendedSorter(logger);
+			sorter.SortWithFileSystem<TestLineItem>(inputFileName, folder, "output.txt", new ByNameAndNumberComparer(),3);
 			
 			string[] result = File.ReadAllLines(Path.Combine(folder, "output.txt"));
 			// clear files

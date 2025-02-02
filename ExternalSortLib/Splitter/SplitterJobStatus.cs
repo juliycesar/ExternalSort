@@ -1,4 +1,4 @@
-﻿namespace ExternalSortLib
+﻿namespace ExternalSortLib.Splitter
 {
 	public class SplitterJobStatus
 	{

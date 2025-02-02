@@ -1,4 +1,4 @@
-﻿namespace ExternalSortLib
+﻿namespace ExternalSortLib.Merger
 {
 	public class KWayExtendedMergerJobStatus
 	{
