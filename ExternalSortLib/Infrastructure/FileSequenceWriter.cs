@@ -1,5 +1,9 @@
 ﻿namespace ExternalSortLib.Infrastructure
 {
+	/// <summary>
+	/// Implementation of sequence writer using local machine file system
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class FileSequenceWriter<T> : ISequenceWriter<T> where T : ITextSerializable, new()
 	{
 		private readonly  StreamWriter _writer;

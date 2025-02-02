@@ -15,7 +15,16 @@ namespace ExternalSortLib
 		{
 			_logger = logger;
 		}
-
+		/// <summary>
+		/// Sort huge file using extended Sort + KwayMerge algorithm 
+		/// </summary>
+		/// <typeparam name="T">Type of line item</typeparam>
+		/// <param name="inputFileName"></param>
+		/// <param name="folder"></param>
+		/// <param name="outputFileName"></param>
+		/// <param name="comparer"></param>
+		/// <param name="packageSize">Size of items in one package which used for extended sort</param>
+		/// <param name="ct"></param>
 		public void SortWithFileSystem<T>(string inputFileName, string folder, string outputFileName, IComparer<T> comparer,int packageSize = 100000, CancellationToken ct = default)  where T : ITextSerializable, new ()
 		{
 			// split into sorted files

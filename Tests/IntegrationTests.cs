@@ -15,8 +15,6 @@ namespace Tests
 			logger = mock.Object;
 		}
 
-
-
 		[Fact]
 		public void Restorable_File_Check()
 		{
@@ -57,7 +55,7 @@ namespace Tests
 			sorter.SortWithFileSystem<TestLineItem>(inputFileName, folder, "output.txt", new ByNameAndNumberComparer(),3);
 			
 			string[] result = File.ReadAllLines(Path.Combine(folder, "output.txt"));
-			// clear files
+			// clean files
 			Directory.Delete(folder, true);
 
 			Assert.Equal(string.Join("\n", expectedLines), string.Join("\n", result));

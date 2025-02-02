@@ -1,5 +1,9 @@
 ﻿namespace ExternalSortLib.Infrastructure
 {
+	/// <summary>
+	/// Factory of readers/writers using local file system
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class FileSequenceRepositoryFactory<T> : ISequenceRepositoryFactory<T> where T : ITextSerializable, new()
 	{
 		string _folder;

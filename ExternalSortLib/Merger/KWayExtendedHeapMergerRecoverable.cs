@@ -3,6 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace ExternalSortLib.Merger
 {
+	/// <summary>
+	/// Kway merge algorithm which 
+	/// A able to restore merging after failures, need restart it from client
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class KWayExtendedHeapMergerRecoverable<T> : KWayExtendedHeapMerger<T> where T : ITextSerializable, new()
 	{
 		readonly IStatusRepository<KWayExtendedMergerJobStatus> _statusRepository;
@@ -42,8 +47,7 @@ namespace ExternalSortLib.Merger
 			_statusRepository.SetStatus(new KWayExtendedMergerJobStatus { AllCompleted = true, MergeCounts = _batchStatuses });
 		}
 
-		private PriorityQueue<(T, ISequenceReader<T>, int), T>? 
-																InitializeSortHeap(IComparer<T> comparer ,CancellationToken ct)
+		private PriorityQueue<(T, ISequenceReader<T>, int), T>? InitializeSortHeap(IComparer<T> comparer ,CancellationToken ct)
 		{
 			var status = _statusRepository.GetStatus();
 			if (status.AllCompleted)

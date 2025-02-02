@@ -2,6 +2,10 @@
 
 namespace ExternalSortLib.Infrastructure
 {
+	/// <summary>
+	/// Repository implementation using local file system 
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class JsonFileStatusRepository<T> : IStatusRepository<T> where T : class, new()
 	{
 		readonly string _filePath;

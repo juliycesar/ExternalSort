@@ -3,6 +3,10 @@ using Microsoft.Extensions.Logging;
 
 namespace ExternalSortLib.Splitter
 {
+	/// <summary>
+	/// Extended sorting takes big file and split into smaller sorted files, 
+	/// Able to restore work after IO fail need to restart it
+	/// </summary>
 	public class SimpleSplitterRecoverable<T> : SimpleSplitter<T> where T : ITextSerializable, new()
 	{
 		readonly IStatusRepository<SplitterJobStatus> _statusRepository;

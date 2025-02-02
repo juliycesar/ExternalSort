@@ -3,6 +3,10 @@ using Microsoft.Extensions.Logging;
 
 namespace ExternalSortLib.Merger
 {
+	/// <summary>
+	/// Kway merge algoritm for merging presorted arrays into single sorted array
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class KWayExtendedHeapMerger<T> where T : ITextSerializable, new()
 	{
 		protected readonly IList<ISequenceReader<T>> _inputSequences;
@@ -16,12 +20,11 @@ namespace ExternalSortLib.Merger
 			_logger = logger;
 		}
 
-		private PriorityQueue<(T, ISequenceReader<T>, int), T>? 
-																InitializeSortHeap(IComparer<T> comparer, CancellationToken ct)
+		private PriorityQueue<(T, ISequenceReader<T>, int), T>? InitializeSortHeap(IComparer<T> comparer, CancellationToken ct)
 		{
 			// initialize heap with top elements
 			var queue = new PriorityQueue<(T, ISequenceReader<T>, int), T>(_inputSequences.Count(), comparer);
-			//int readerNumber = 0;
+			
 			for (int readerNumber = 0; readerNumber < _inputSequences.Count(); readerNumber++)
 			{
 				ct.ThrowIfCancellationRequested();

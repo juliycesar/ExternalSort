@@ -1,5 +1,9 @@
 ﻿namespace ExternalSortLib.Infrastructure
 {
+	/// <summary>
+	/// Implementation of sequence reader using local machine file system
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class FileSequenceReader<T> : ISequenceReader<T> where T : ITextSerializable, new()
 	{
 		private readonly StreamReader _reader;

@@ -3,6 +3,10 @@ using Microsoft.Extensions.Logging;
 
 namespace ExternalSortLib.Splitter
 {
+	/// <summary>
+	/// Extended sorting takes big file and split into smaller sorted files
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class SimpleSplitter<T> where T : ITextSerializable, new()
 	{
 		protected readonly ISequenceRepositoryFactory<T> _repositoryFactory;
@@ -38,7 +42,7 @@ namespace ExternalSortLib.Splitter
 
 				UpdateBatchCompletedStatus(currentBatchNumber);
 
-				_logger.LogInformation($"Batch {currentBatchNumber - 1} sorted");
+				_logger.LogInformation($"Batch {currentBatchNumber} sorted");
 			}
 
 			return batchIds;
