@@ -40,11 +40,12 @@ namespace ExternalSortLib
 
 			var batchReaders = batchIds.Select(x => repositoryFactory.GetReader(x)).ToList();
 
-			var merger = new KWayHeapMergerRecoverable<T>(batchReaders, writer, mergeStatusRepository, _logger);
-
-			merger.Merge(comparer, ct);
-
-			batchReaders.ForEach(x => x.Dispose());
+			try {
+				var merger = new KWayHeapMergerRecoverable<T>(batchReaders, writer, mergeStatusRepository, _logger);
+				merger.Merge(comparer, ct);
+			} finally {
+				batchReaders.ForEach(x => x.Dispose());
+			}
 		}
 		
 		protected virtual IEnumerable<string> Split<T>(string inputFileName, string folder, FileSequenceRepositoryFactory<T> repositoryFactory, IComparer<T> comparer, int packageSize , CancellationToken ct) where T : ITextSerializable, new()
