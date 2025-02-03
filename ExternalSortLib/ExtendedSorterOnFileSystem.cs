@@ -2,14 +2,13 @@
 using ExternalSortLib.Merger;
 using ExternalSortLib.Splitter;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.Metrics;
 
 namespace ExternalSortLib
 {
 	/// <summary>
 	/// Sort huge file using extended Sort + KwayMerge algorithm based on filesystem implementations with recoverable subsystem
 	/// </summary>
-	public class ExtendedSorterOnFileSystem<T> : IDisposable where T : ITextSerializable, new()
+	public class ExtendedSorterOnFileSystem<T> : IExtendedSorter<T> where T : ITextSerializable, new()
 	{
 		const string SplitterStatusFileName = "splitter_status.json";
 		const string MergerStatusFileName = "merge_status.json";
