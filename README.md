@@ -1,21 +1,22 @@
 # ExternalSort
-Implementation of External sorting algorithms
-https://en.wikipedia.org/wiki/K-way_merge_algorithm
+Implementation of External Sorting Algorithms
+Learn more about K-way Merge
 
-External sorting designed to sort huge files which cannot fit memory of single machine.
-Here one of variations of external sorting Kway sorting 
-Consists 2 stages 
-	1 Split input file into smaller files which can be sorted on single machine memory and CPU
-	2 Merge previously sorted files into output file using single machine memory and CPU
-In order to scale processes using distributed storage and CPU resources I added abstract layer for
-accessing files. With assumption that we can sequentially read items and write them to the end, also we can skip
-some number of items.
+Overview
+External sorting is designed for sorting massive files that cannot fit into a single machine’s memory. One common variation is K-way sorting, which consists of two main stages:
 
-There is a simple implementation of this abstraction using local machine file system.
-In practice it could be cloud blob storage service or other storage service.
+Splitting – The input file is divided into smaller chunks that can be sorted using a single machine’s memory and CPU.
+Merging – The previously sorted chunks are merged into the final output file, utilizing a single machine’s memory and CPU.
+Scaling the Process
+To enable distributed processing, I introduced an abstraction layer for file access. This assumes that we can:
 
-Split stage implementation is simple using single machine, but it could be run in parallel using cloud resources.
-For parallel need to reimplement Splitter which run distributed sorting on several machines. 
+Read items sequentially
+Write items at the end of a file
+Skip a certain number of items
+A simple implementation of this abstraction uses the local file system, but in practice, it could be replaced by cloud-based blob storage or other storage services.
 
-Merge implementation is on single machine. Unfortunately there is no way to scale it. It use abstract way to read files.
+Implementation Details
+Splitting Stage – Currently, this runs on a single machine. However, it can be parallelized using cloud resources by implementing a distributed Splitter that sorts data across multiple machines.
+Merging Stage – This is performed on a single machine, as there is no way to scale it further. The merging process relies on the abstracted file access layer.
+This approach allows for flexibility in storage solutions while maintaining efficiency in external sorting.
 

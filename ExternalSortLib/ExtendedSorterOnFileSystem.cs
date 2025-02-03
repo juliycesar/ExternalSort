@@ -2,62 +2,80 @@
 using ExternalSortLib.Merger;
 using ExternalSortLib.Splitter;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 
 namespace ExternalSortLib
 {
 	/// <summary>
 	/// Sort huge file using extended Sort + KwayMerge algorithm based on filesystem implementations with recoverable subsystem
 	/// </summary>
-	public class ExtendedSorterOnFileSystem
+	public class ExtendedSorterOnFileSystem<T> : IDisposable where T : ITextSerializable, new()
 	{
 		const string SplitterStatusFileName = "splitter_status.json";
 		const string MergerStatusFileName = "merge_status.json";
-		readonly ILogger _logger;
-		
-		public ExtendedSorterOnFileSystem(ILogger logger)
+		protected readonly ILogger _logger;
+
+		protected readonly ISequenceRepositoryFactory<T> _repositoryFactory;
+		protected readonly ISequenceReader<T> _reader;
+		protected readonly IStatusRepository<SplitterJobStatus> _statusRepository;
+		protected readonly ISequenceWriter<T> _writer;
+		protected readonly IStatusRepository<KWayMergerJobStatus> _mergeStatusRepository;
+		protected readonly ISplitter<T> _splitter;
+		protected readonly string _inputFileName;
+
+		public ExtendedSorterOnFileSystem(ILogger logger, string inputFileName, string folder, string outputFileName)
 		{
 			_logger = logger;
+			_repositoryFactory = new FileSequenceRepositoryFactory<T>(folder);
+			_reader = _repositoryFactory.GetReader(inputFileName);
+			_statusRepository = new JsonFileStatusRepository<SplitterJobStatus>(Path.Combine(folder, SplitterStatusFileName));
+			_writer = _repositoryFactory.GetWriter(Path.Combine(folder, outputFileName), appendIfExists: true);
+			_mergeStatusRepository = new JsonFileStatusRepository<KWayMergerJobStatus>(Path.Combine(folder, MergerStatusFileName));
+			_splitter = new SimpleSplitterRecoverable<T>(_repositoryFactory, _reader, _statusRepository, _logger);
+			_inputFileName = inputFileName;
 		}
 		
-		public void Sort<T>(string inputFileName, string folder, string outputFileName, IComparer<T> comparer,int packageSize = 100000, CancellationToken ct = default)  where T : ITextSerializable, new ()
+		protected virtual IMerger<T> CreateMerger(IList<ISequenceReader<T>> batchReaders)
 		{
-			var repositoryFactory = new FileSequenceRepositoryFactory<T>(folder);
+			return new KWayHeapMergerRecoverable<T>(batchReaders, _writer, _mergeStatusRepository, _logger);
+		}
 
-			var batchIds = Split<T>(inputFileName, folder, repositoryFactory, comparer, packageSize, ct);
+		public void Sort(IComparer<T> comparer,int packageSize = 100000, CancellationToken ct = default)  
+		{
+			var batchIds = Split(comparer, packageSize, ct);
 			_logger.LogInformation($"File split into {batchIds.Count()} batches package size {packageSize} items");
 			
-			Merge<T>(batchIds,folder, repositoryFactory, outputFileName, comparer, packageSize, ct);
+			Merge(batchIds, comparer, packageSize, ct);
 			_logger.LogInformation("Finished merging");
 		}
 
-		protected virtual void Merge<T>(IEnumerable<string> batchIds, string folder, FileSequenceRepositoryFactory<T> repositoryFactory, string outputFileName, IComparer<T> comparer, int packageSize , CancellationToken ct ) where T : ITextSerializable, new()
+		protected virtual void Merge(IEnumerable<string> batchIds, IComparer<T> comparer, int packageSize , CancellationToken ct )
 		{
 			// merge into final file
-			_logger.LogInformation($"Start merging into {outputFileName}");
-			var mergeStatusRepository =	new JsonFileStatusRepository<KWayMergerJobStatus>(Path.Combine(folder, MergerStatusFileName));
+			_logger.LogInformation($"Start merging {_inputFileName}");
 
-			using var writer = repositoryFactory.GetWriter(Path.Combine(folder, outputFileName), appendIfExists: true);
-
-			var batchReaders = batchIds.Select(x => repositoryFactory.GetReader(x)).ToList();
+			var batchReaders = batchIds.Select(x => _repositoryFactory.GetReader(x)).ToList();
 
 			try {
-				var merger = new KWayHeapMergerRecoverable<T>(batchReaders, writer, mergeStatusRepository, _logger);
+				var merger = CreateMerger(batchReaders);
 				merger.Merge(comparer, ct);
 			} finally {
 				batchReaders.ForEach(x => x.Dispose());
 			}
 		}
 		
-		protected virtual IEnumerable<string> Split<T>(string inputFileName, string folder, FileSequenceRepositoryFactory<T> repositoryFactory, IComparer<T> comparer, int packageSize , CancellationToken ct) where T : ITextSerializable, new()
+		protected virtual IEnumerable<string> Split(IComparer<T> comparer, int packageSize , CancellationToken ct)
 		{
 			// split into sorted files
-			_logger.LogInformation($"Start Splitting file {inputFileName}");
+			_logger.LogInformation($"Start Splitting file {_inputFileName}");
+			
+			return _splitter.SplitFileToSortedBatches(packageSize, comparer, ct);
+		}
 
-			var statusRepository =	new JsonFileStatusRepository<SplitterJobStatus>(Path.Combine(folder, SplitterStatusFileName));
-
-			using var reader = repositoryFactory.GetReader(inputFileName);
-			var splitter = new SimpleSplitterRecoverable<T>(repositoryFactory, reader, statusRepository, _logger);
-			return splitter.SplitFileToSortedBatches(packageSize, comparer, ct);
+		public void Dispose()
+		{
+			_reader?.Dispose();
+			_writer?.Dispose();
 		}
 	}
 }

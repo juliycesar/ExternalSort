@@ -7,7 +7,7 @@ namespace ExternalSortLib.Splitter
 	/// Extended sorting takes big file and split into smaller sorted files
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class SimpleSplitter<T> where T : ITextSerializable, new()
+	public class SimpleSplitter<T>: ISplitter<T> where T : ITextSerializable, new()
 	{
 		protected readonly ISequenceRepositoryFactory<T> _repositoryFactory;
 		protected readonly ISequenceReader<T> _inputFile;

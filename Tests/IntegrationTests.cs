@@ -51,8 +51,10 @@ namespace Tests
 				 lines.ForEach(line=> f.WriteLine(line));
 
 			// Action
-			var sorter = new ExtendedSorterOnFileSystem(logger);
-			sorter.Sort<TestLineItem>(inputFileName, folder, "output.txt", new ByNameAndNumberComparer(),3);
+			using (var sorter = new ExtendedSorterOnFileSystem<TestLineItem>(logger, inputFileName, folder, "output.txt"))
+			{
+				sorter.Sort(new ByNameAndNumberComparer(), 3);
+			}
 			
 			string[] result = File.ReadAllLines(Path.Combine(folder, "output.txt"));
 			// clean files
